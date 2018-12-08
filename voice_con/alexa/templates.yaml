@@ -1,0 +1,7 @@
+welcome: 'welcome to boudey org'
+
+reminder_completed: 'Reminder {{ id }} completed'
+
+reminder_removed: 'Reminder {{ id }} removed'
+
+set_priority: 'Priority set on reminder {{ id }}'

@@ -1,0 +1,10 @@
+schedule
+flask
+sqlalchemy
+sqlalchemy-utils
+Faker
+dash
+dash_html_components
+dash_core_components
+dash_table
+pandas
