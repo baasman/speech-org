@@ -1,7 +1,6 @@
-from backend.app.database import (
+from backend.database import (
     db_session,
     ReminderSticky,
-    ReminderLog,
     ReminderEvents,
     User
 )

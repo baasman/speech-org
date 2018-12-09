@@ -1,15 +1,16 @@
 from werkzeug.wsgi import DispatcherMiddleware
 from werkzeug.serving import run_simple
 import flask
-from flask import Flask, Response, redirect, url_for, request, session, abort
-from flask_login import LoginManager, UserMixin, login_required, login_user, logout_user
+from flask import Response, request, abort
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from dash import Dash
 import dash_html_components as html
 import dash_core_components as dcc
 from dash.dependencies import Input, Output
 import dash_table
 from sqlalchemy import create_engine
-from tests.config import app_config
+from frontend.config import app_config
+from backend.database import User, db_session
 import pandas as pd
 
 
@@ -35,20 +36,20 @@ login_manager.init_app(server)
 login_manager.login_view = "login"
 
 
-# user model
-class User(UserMixin):
-
-    def __init__(self, id):
-        self.id = id
-        self.name = str(id)
-        self.password = "secret"
-
-    def __repr__(self):
-        return "%d/%s/%s" % (self.id, self.name, self.password)
-
-
-# create some users with ids 1 to 20
-users = [User("numpynewb")]
+# # user model
+# class User(UserMixin):
+#
+#     def __init__(self, id):
+#         self.id = id
+#         self.name = str(id)
+#         self.password = "secret"
+#
+#     def __repr__(self):
+#         return "%d/%s/%s" % (self.id, self.name, self.password)
+#
+#
+# # create some users with ids 1 to 20
+# users = [User("numpynewb")]
 
 
 # somewhere to login
@@ -57,9 +58,9 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if password == "secret":
+        if password == "pass123":
             id = username
-            user = User(id)
+            user = db_session.query(User).filter(User.username == id).first()
             login_user(user)
             return flask.redirect(request.args.get("next"))
         else:
@@ -74,7 +75,6 @@ def login():
         ''')
 
 
-# somewhere to logout
 @server.route("/logout")
 @login_required
 def logout():
@@ -82,17 +82,19 @@ def logout():
     return Response('<p>Logged out</p>')
 
 
-# handle login failed
 @server.errorhandler(401)
 def page_not_found(e):
     return Response('<p>Login failed</p>')
 
 
-# callback to reload the user object
+@server.teardown_appcontext
+def shutdown_session(exception=None):
+    db_session.remove()
+
+
 @login_manager.user_loader
 def load_user(userid):
-    return User(userid)
-
+    return db_session.query(User).filter(User.id == userid).first()
 
 
 dash_app1 = Dash(__name__, server=server, url_base_pathname='/dashboard/')
@@ -109,11 +111,11 @@ dash_app1.layout = html.Div([
 def render_content(tab):
     sticky = pd.read_sql('select id, completed, reminder, priority '
                          'from main.reminders_sticky '
-                         'where username = "David Smith" order by priority desc',
+                         'where username = "{}" order by priority desc'.format(current_user.username),
                          engine)
     events = pd.read_sql('select id, completed_since_last, reminder, time_of_reminder, how_often '
                          'from main.reminders_events '
-                         'where username = "David Smith"',
+                         'where username = "{}"'.format(current_user.username),
                          engine)
 
     if tab == 'tab-1-reminders':

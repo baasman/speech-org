@@ -1,4 +1,4 @@
-from backend.app.database import db_session, ReminderSticky, ReminderEvents
+from backend.database import db_session, ReminderEvents
 
 from flask import Blueprint, render_template
 from flask import current_app as capp

@@ -1,7 +1,6 @@
 from flask import Flask
 
-from backend.app.database import db_session
-from backend.config import app_config
+from backend.database import db_session
 
 
 def create_app(config):

@@ -1,9 +1,8 @@
 import functools
 import schedule
-import time
 from datetime import datetime, timedelta
 
-from backend.app.database import db_session, ReminderEvents, ReminderLog
+from backend.database import db_session, ReminderEvents, ReminderLog
 
 
 def with_logging(func):
